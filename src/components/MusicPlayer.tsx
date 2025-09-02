@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import audioFile from '../assets/lyrcs.mp3';
 
 const MusicPlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -32,8 +33,8 @@ const MusicPlayer: React.FC = () => {
     
     if (audioRef.current) {
       try {
-        // Verificar si el audio puede cargar
-        await new Promise((resolve, reject) => {
+        // Timeout de 5 segundos para evitar carga infinita
+        const audioPromise = new Promise((resolve, reject) => {
           const audio = audioRef.current;
           if (!audio) {
             reject(new Error('Audio element not found'));
@@ -58,8 +59,19 @@ const MusicPlayer: React.FC = () => {
           // Si ya puede reproducir, resolver inmediatamente
           if (audio.readyState >= 3) {
             handleCanPlay();
+          } else {
+            // Forzar carga del audio
+            audio.load();
           }
         });
+
+        // Timeout de 5 segundos
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Audio load timeout')), 5000);
+        });
+
+        // Esperar el audio o timeout
+        await Promise.race([audioPromise, timeoutPromise]);
         
         audioRef.current.volume = volume;
         await audioRef.current.play();
@@ -69,7 +81,7 @@ const MusicPlayer: React.FC = () => {
       } catch (error) {
         console.log('Error al iniciar música:', error);
         setAudioError(true);
-        // Aún así ocultar el welcome y mostrar controles después de un momento
+        // Ocultar welcome después de mostrar error por 2 segundos
         setTimeout(() => {
           setShowWelcome(false);
         }, 2000);
@@ -119,7 +131,7 @@ const MusicPlayer: React.FC = () => {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
       >
-        <source src="/src/assets/lyrcs.mp3" type="audio/wav" />
+        <source src={audioFile} type="audio/mpeg" />
         Tu navegador no soporta audio HTML5.
       </audio>
 
