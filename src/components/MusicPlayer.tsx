@@ -6,19 +6,39 @@ const MusicPlayer: React.FC = () => {
   const [volume, setVolume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    // Mostrar controles después de un momento
-    const timer = setTimeout(() => setIsVisible(true), 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    // Mostrar controles después de un momento, pero solo si ya no está el welcome
+    if (!showWelcome) {
+      const timer = setTimeout(() => setIsVisible(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [showWelcome]);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
     }
   }, [volume, isMuted]);
+
+  // Función para iniciar la experiencia con música
+  const startExperience = async () => {
+    if (audioRef.current) {
+      try {
+        audioRef.current.volume = volume;
+        await audioRef.current.play();
+        setIsPlaying(true);
+        setShowWelcome(false);
+        console.log('Música iniciada exitosamente');
+      } catch (error) {
+        console.log('Error al iniciar música:', error);
+        // Aún así ocultar el welcome y mostrar controles
+        setShowWelcome(false);
+      }
+    }
+  };
 
   const togglePlay = () => {
     if (audioRef.current) {
@@ -47,7 +67,7 @@ const MusicPlayer: React.FC = () => {
 
   return (
     <>
-      {/* Audio element - usando una URL de ejemplo ya que no podemos acceder a Spotify directamente */}
+      {/* Audio element */}
       <audio
         ref={audioRef}
         loop
@@ -55,13 +75,39 @@ const MusicPlayer: React.FC = () => {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
       >
-        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav" type="audio/wav" />
+        <source src="/src/assets/lyrcs.mp3" type="audio/wav" />
         Tu navegador no soporta audio HTML5.
       </audio>
 
+      {/* Welcome Overlay */}
+      {showWelcome && (
+        <div className="fixed inset-0 bg-gradient-to-br from-pink-100 via-rose-50 to-purple-100 z-50 flex items-center justify-center backdrop-blur-sm">
+          <div className="text-center p-8 max-w-md mx-auto">
+            <div className="mb-8 animate-bounce">
+              <div className="text-6xl mb-4">💕</div>
+              <h1 className="text-4xl font-elegant text-pink-600 mb-4">
+                Bienvenido a Nuestro Amor
+              </h1>
+            
+            </div>
+            
+           <div className='w-full flex justify-center items-center'>
+             <button
+              onClick={startExperience}
+              className="max-w-max bg-gradient-to-r from-pink-500 to-rose-500 text-white px-8 py-4  rounded-full text-lg lg:text-xl font-semibold shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-110 animate-pulse-love"
+            >
+             Entrar a Nuestro Mundo
+            </button>
+           </div>
+            
+         
+          </div>
+        </div>
+      )}
+
       {/* Controles de música flotantes */}
       <div className={`fixed bottom-6 right-6 z-40 transform transition-all duration-500 ${
-        isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
+        isVisible && !showWelcome ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
       }`}>
         <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-pink-200/50 group hover:shadow-xl transition-shadow duration-300">
           <div className="flex items-center space-x-4">
@@ -100,23 +146,13 @@ const MusicPlayer: React.FC = () => {
               {isPlaying ? '🎵 Reproduciendo' : '🎵 Pausado'}
             </p>
             <p className="text-xs text-pink-600 font-semibold">
-              "Amor del Bueno"
+              "Te amo y más"
             </p>
           </div>
         </div>
       </div>
 
-      {/* Nota sobre la música */}
-      <div className={`fixed top-6 right-6 z-30 transform transition-all duration-500 ${
-        isVisible ? 'translate-y-0 opacity-100' : '-translate-y-10 opacity-0'
-      }`}>
-        <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-3 shadow-lg max-w-xs">
-          <p className="text-yellow-800 text-sm">
-            💡 <strong>Nota:</strong> Para escuchar "Amor del Bueno" de Reyli Barba, 
-            abre tu reproductor de música favorito en paralelo.
-          </p>
-        </div>
-      </div>
+     
     </>
   );
 };
