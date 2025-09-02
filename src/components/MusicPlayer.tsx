@@ -7,6 +7,8 @@ const MusicPlayer: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [audioError, setAudioError] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -25,8 +27,40 @@ const MusicPlayer: React.FC = () => {
 
   // Función para iniciar la experiencia con música
   const startExperience = async () => {
+    setIsLoading(true);
+    setAudioError(false);
+    
     if (audioRef.current) {
       try {
+        // Verificar si el audio puede cargar
+        await new Promise((resolve, reject) => {
+          const audio = audioRef.current;
+          if (!audio) {
+            reject(new Error('Audio element not found'));
+            return;
+          }
+          
+          const handleCanPlay = () => {
+            audio.removeEventListener('canplay', handleCanPlay);
+            audio.removeEventListener('error', handleError);
+            resolve(true);
+          };
+          
+          const handleError = () => {
+            audio.removeEventListener('canplay', handleCanPlay);
+            audio.removeEventListener('error', handleError);
+            reject(new Error('Audio failed to load'));
+          };
+          
+          audio.addEventListener('canplay', handleCanPlay);
+          audio.addEventListener('error', handleError);
+          
+          // Si ya puede reproducir, resolver inmediatamente
+          if (audio.readyState >= 3) {
+            handleCanPlay();
+          }
+        });
+        
         audioRef.current.volume = volume;
         await audioRef.current.play();
         setIsPlaying(true);
@@ -34,10 +68,20 @@ const MusicPlayer: React.FC = () => {
         console.log('Música iniciada exitosamente');
       } catch (error) {
         console.log('Error al iniciar música:', error);
-        // Aún así ocultar el welcome y mostrar controles
-        setShowWelcome(false);
+        setAudioError(true);
+        // Aún así ocultar el welcome y mostrar controles después de un momento
+        setTimeout(() => {
+          setShowWelcome(false);
+        }, 2000);
       }
+    } else {
+      setAudioError(true);
+      setTimeout(() => {
+        setShowWelcome(false);
+      }, 2000);
     }
+    
+    setIsLoading(false);
   };
 
   const togglePlay = () => {
@@ -88,18 +132,33 @@ const MusicPlayer: React.FC = () => {
               <h1 className="text-4xl font-elegant text-pink-600 mb-4">
                 Bienvenido a Nuestro Amor
               </h1>
-            
+              {audioError && (
+                <p className="text-sm text-red-500 mb-4">
+                  ⚠️ Audio no disponible, pero puedes continuar
+                </p>
+              )}
             </div>
             
            <div className='w-full flex justify-center items-center'>
              <button
               onClick={startExperience}
-              className="max-w-max bg-gradient-to-r from-pink-500 to-rose-500 text-white px-8 py-4  rounded-full text-lg lg:text-xl font-semibold shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-110 animate-pulse-love"
+              disabled={isLoading}
+              className={`max-w-max bg-gradient-to-r from-pink-500 to-rose-500 text-white px-8 py-4 rounded-full text-lg lg:text-xl font-semibold shadow-xl hover:shadow-2xl transform transition-all duration-300 hover:scale-110 ${
+                isLoading ? 'opacity-50 cursor-not-allowed' : 'animate-pulse-love'
+              }`}
             >
-             Entrar a Nuestro Mundo
+             {isLoading ? (
+               <span className="flex items-center">
+                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                 Cargando...
+               </span>
+             ) : (
+               'Entrar a Nuestro Mundo'
+             )}
             </button>
            </div>
             
+          
          
           </div>
         </div>
