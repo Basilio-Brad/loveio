@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { Heart, Camera, Sparkles } from 'lucide-react';
 
+// Import all photos
+import photo1 from '../assets/img/photo1.jpg';
+import photo2 from '../assets/img/photo2.jpg';
+import photo4 from '../assets/img/photo4.jpg';
+import photo5 from '../assets/img/photo5.jpg';
+import photo6 from '../assets/img/photo6.jpg';
+import photo8 from '../assets/img/photo8.jpg';
+
 const PhotoGallery: React.FC = () => {
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [hoveredPhoto, setHoveredPhoto] = useState<number | null>(null);
@@ -8,32 +16,32 @@ const PhotoGallery: React.FC = () => {
   const photos = [
     {
       id: 1,
-      url: "/src/assets/img/photo1.jpg",
+      url: photo1,
       caption: "Nuestro primer paseo juntos 💕"
     },
     {
       id: 2,
-      url: "/src/assets/img/photo2.jpg",
+      url: photo2,
       caption: "Esa sonrisa que me enamora cada día 😍"
     },
     {
       id: 3,
-      url: "/src/assets/img/photo8.jpg",
+      url: photo8,
       caption: "Momentos de pura felicidad ✨"
     },
     {
       id: 4,
-      url: "/src/assets/img/photo4.jpg",
+      url: photo4,
       caption: "Aventuras que recordaremos siempre 🌟"
     },
     {
       id: 5,
-      url: "/src/assets/img/photo5.jpg",
+      url: photo5,
       caption: "Tu mirada que me dice todo 💖"
     },
     {
       id: 6,
-      url: "/src/assets/img/photo6.jpg",
+      url: photo6,
       caption: "Juntos hacia el infinito 💫"
     }
   ];
